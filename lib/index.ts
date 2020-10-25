@@ -2,9 +2,9 @@
 import {CdkPipeline, SimpleSynthAction} from '@aws-cdk/pipelines';
 import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
-import {Construct, SecretValue, Stack, StackProps, Stage} from "@aws-cdk/core/lib";
+import {Construct, SecretValue, Stage} from "@aws-cdk/core/lib";
 
-export interface CdkGithubPipeline extends StackProps {
+export interface CdkGithubPipeline {
     buildCommands: string[];
     installCommands: string[];
     projectName: string,
