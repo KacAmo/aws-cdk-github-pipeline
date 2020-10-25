@@ -1,12 +1,5 @@
-# Welcome to your CDK TypeScript Construct Library project!
+# Welcome !
 
-You should explore the contents of this project. It demonstrates a CDK Construct Library that includes a construct (`CdkPipelineWrapper`)
-which contains an Amazon SQS queue that is subscribed to an Amazon SNS topic.
-
-The construct defines an interface (`CdkPipelineWrapperProps`) to configure the visibility timeout of the queue.
-
-## Useful commands
-
- * `npm run build`   compile typescript to js
- * `npm run watch`   watch for changes and compile
- * `npm run test`    perform the jest unit tests
+Wrote this project to avoid having to create a codebuild pipeline 
+that checks out from github and does a cdk deploy every time i 
+need one 
