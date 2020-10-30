@@ -28,14 +28,6 @@ export abstract class CdkGithubPipeline extends Construct {
         const buildCommands: string[] = ["npm install aws-cdk"];
         if (props.buildCommands) Array.prototype.push.apply(buildCommands, props.buildCommands);
 
-        const synthAction = new SimpleSynthAction({
-            sourceArtifact,
-            cloudAssemblyArtifact,
-            installCommands: props.installCommands,
-            buildCommands: props.buildCommands,
-            synthCommand: 'npx cdk synth',
-            subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir: "."
-        });
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
             cloudAssemblyArtifact,
@@ -48,7 +40,14 @@ export abstract class CdkGithubPipeline extends Construct {
                 repo: props.projectName,
             }),
 
-            synthAction: synthAction
+            synthAction: new SimpleSynthAction({
+                sourceArtifact,
+                cloudAssemblyArtifact,
+                installCommands: props.installCommands,
+                buildCommands: props.buildCommands,
+                synthCommand: 'npx cdk synth',
+                subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir : "."
+            })
 
         });
 
