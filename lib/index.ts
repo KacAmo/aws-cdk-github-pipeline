@@ -4,7 +4,7 @@ import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import {Construct, SecretValue, Stage} from "@aws-cdk/core/lib";
 
-export interface CdkGithubPipeline {
+export interface CdkGithubPipelineProps {
     buildCommands: string[];
     installCommands: string[];
     projectName: string,
@@ -21,7 +21,7 @@ export interface CdkGithubPipeline {
 export abstract class CdkGithubPipeline extends Construct {
     private cdkPipeline: CdkPipeline;
 
-    protected constructor(scope: Construct, id: string, props: CdkGithubPipeline) {
+    protected constructor(scope: Construct, id: string, props: CdkGithubPipelineProps) {
         super(scope, id);
 
         const sourceArtifact = new codepipeline.Artifact();
