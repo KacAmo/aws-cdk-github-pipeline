@@ -2,7 +2,7 @@
 import {CdkPipeline, SimpleSynthAction} from '@aws-cdk/pipelines';
 import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
-import {Construct, SecretValue, Stage} from "@aws-cdk/core/lib";
+import {App, Construct, SecretValue, Stack, Stage} from "@aws-cdk/core/lib";
 
 export interface CdkGithubPipelineProps {
     buildCommands: string[];
@@ -10,24 +10,21 @@ export interface CdkGithubPipelineProps {
     projectName: string,
     githubProjectOwner: string
     stages: {
-        stageName: string,
-        stage: {
-            account: string,
-            region: string
-        }
+        account: string,
+        region: string
     }[]
 }
 
 export abstract class CdkGithubPipeline extends Construct {
     private cdkPipeline: CdkPipeline;
 
-    protected constructor(scope: Construct, id: string, props: CdkGithubPipelineProps) {
-        super(scope, id);
+    protected constructor(app: App, pipelineStack: Stack, id: string, props: CdkGithubPipelineProps) {
+        super(app, id);
 
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
 
-        this.cdkPipeline = new CdkPipeline(this, 'Pipeline', {
+        this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
             cloudAssemblyArtifact,
 
@@ -50,10 +47,16 @@ export abstract class CdkGithubPipeline extends Construct {
 
         });
 
-        props.stages.forEach(stage => this.cdkPipeline.addApplicationStage(this.createStage(stage.stage)))
+        props.stages.forEach(stage => {
+            this.cdkPipeline.addApplicationStage(this.createStage({
+                pipelineStack: pipelineStack,
+                ...stage
+            }))
+        })
     }
 
     protected abstract createStage(stageEnvironment: {
+        pipelineStack: Stack,
         account: string,
         region: string
     }): Stage;
