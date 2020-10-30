@@ -24,6 +24,9 @@ export abstract class CdkGithubPipeline extends Construct {
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
 
+        const buildCommands: string[] = ["npm install aws-cdk"];
+        Array.prototype.push.apply(buildCommands, props.buildCommands);
+
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
             cloudAssemblyArtifact,
@@ -41,7 +44,7 @@ export abstract class CdkGithubPipeline extends Construct {
                 cloudAssemblyArtifact,
                 installCommands: props.installCommands,
                 buildCommands: props.buildCommands,
-                synthCommand: 'cdk synth',
+                synthCommand: 'npx cdk synth',
                 subdirectory: 'deployment'
             })
 
