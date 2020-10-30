@@ -5,14 +5,15 @@ import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import {App, Construct, SecretValue, Stack, Stage} from "@aws-cdk/core/lib";
 
 export interface CdkGithubPipelineProps {
-    buildCommands: string[];
-    installCommands: string[];
+    buildCommands?: string[];
+    installCommands?: string[];
     projectName: string,
     githubProjectOwner: string
     stages: {
         account: string,
         region: string
-    }[]
+    }[],
+    subdir?: string
 }
 
 export abstract class CdkGithubPipeline extends Construct {
@@ -25,8 +26,16 @@ export abstract class CdkGithubPipeline extends Construct {
         const cloudAssemblyArtifact = new codepipeline.Artifact();
 
         const buildCommands: string[] = ["npm install aws-cdk"];
-        Array.prototype.push.apply(buildCommands, props.buildCommands);
+        if (props.buildCommands) Array.prototype.push.apply(buildCommands, props.buildCommands);
 
+        const synthAction = new SimpleSynthAction({
+            sourceArtifact,
+            cloudAssemblyArtifact,
+            installCommands: props.installCommands,
+            buildCommands: props.buildCommands,
+            synthCommand: 'npx cdk synth',
+            subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir: "."
+        });
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
             cloudAssemblyArtifact,
@@ -39,14 +48,7 @@ export abstract class CdkGithubPipeline extends Construct {
                 repo: props.projectName,
             }),
 
-            synthAction: new SimpleSynthAction({
-                sourceArtifact,
-                cloudAssemblyArtifact,
-                installCommands: props.installCommands,
-                buildCommands: props.buildCommands,
-                synthCommand: 'npx cdk synth',
-                subdirectory: 'deployment'
-            })
+            synthAction: synthAction
 
         });
 
@@ -56,6 +58,10 @@ export abstract class CdkGithubPipeline extends Construct {
                 ...stage
             }))
         })
+    }
+
+    private static notEmptyString(stringToTest: string | undefined) {
+        return stringToTest && stringToTest.length > 0;
     }
 
     protected abstract createStage(stageEnvironment: {
