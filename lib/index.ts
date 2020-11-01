@@ -10,6 +10,7 @@ export interface CdkGithubPipelineProps {
     projectName: string,
     githubProjectOwner: string
     stages: {
+        name: string
         account: string,
         region: string
     }[],
@@ -51,11 +52,19 @@ export abstract class CdkGithubPipeline extends Construct {
 
         });
 
-        props.stages.forEach(stage => {
-            this.cdkPipeline.addApplicationStage(this.createStage({
-                pipelineStack: pipelineStack,
-                ...stage
-            }))
+        props.stages.forEach(stageParams => {
+            const stageEnv = {
+                region: stageParams.region,
+                account: stageParams.account
+            };
+            const stage = new Stage(pipelineStack, stageParams.name, {
+                env: stageEnv
+            });
+            this.createStacks({
+                stageScope: stage,
+                ...stageEnv
+            })
+            this.cdkPipeline.addApplicationStage(stage)
         })
     }
 
@@ -63,10 +72,10 @@ export abstract class CdkGithubPipeline extends Construct {
         return stringToTest && stringToTest.length > 0;
     }
 
-    protected abstract createStage(stageEnvironment: {
-        pipelineStack: Stack,
+    protected abstract createStacks(stageEnvironment: {
+        stageScope: Stage,
         account: string,
         region: string
-    }): Stage;
+    }): Stack[];
 }
 
