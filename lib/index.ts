@@ -50,7 +50,7 @@ export abstract class CdkGithubPipeline extends Construct {
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
 
-        const buildCommands: string[] = ["npm install aws-cdk"];
+        const buildCommands: string[] = ["npm install aws-cdk ts-node typescript"];
         if (props.buildCommands) Array.prototype.push.apply(buildCommands, props.buildCommands);
 
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
@@ -112,10 +112,11 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
 
-        const buildCommands: string[] = ["npm install aws-cdk"];
+        const buildCommands: string[] = ["npm install aws-cdk ts-node typescript"];
         if (props?.commands?.buildCommands) Array.prototype.push.apply(buildCommands, props.commands.buildCommands);
 
         const githubTokenPath = props.github?.tokenInSecretManager || 'GITHUB_TOKEN';
+
 
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
@@ -123,7 +124,7 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
             sourceAction: new codepipeline_actions.GitHubSourceAction({
                 actionName: 'GitHub',
                 output: sourceArtifact,
-                oauthToken:  SecretValue.secretsManager(githubTokenPath),
+                oauthToken: SecretValue.secretsManager(githubTokenPath),
                 owner: props.github.projectOwner,
                 repo: props.projectName,
             }),
@@ -138,7 +139,6 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
             })
 
         });
-
         let firstStage: boolean = true;
         props.stage.stages.forEach(stageParams => {
             const stageEnv = {
