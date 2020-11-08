@@ -51,7 +51,10 @@ export abstract class CdkGithubPipeline extends Construct {
         const cloudAssemblyArtifact = new codepipeline.Artifact();
 
         const buildCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
-        if (props.buildCommands) Array.prototype.push.apply(buildCommands, props.buildCommands);
+
+        props
+            ?.buildCommands
+            ?.forEach(buildCommand => buildCommands.push(buildCommand))
 
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
