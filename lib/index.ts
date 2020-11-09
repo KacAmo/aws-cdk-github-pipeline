@@ -49,7 +49,6 @@ export abstract class CdkGithubPipeline extends Construct {
 
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
-
         const buildCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
 
         props
@@ -114,7 +113,6 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
 
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
-
         const buildCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
         if (props?.commands?.buildCommands) Array.prototype.push.apply(buildCommands, props.commands.buildCommands);
 
