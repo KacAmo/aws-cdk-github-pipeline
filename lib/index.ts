@@ -49,11 +49,11 @@ export abstract class CdkGithubPipeline extends Construct {
 
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
-        const buildCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
+        const installCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
 
         props
-            ?.buildCommands
-            ?.forEach(buildCommand => buildCommands.push(buildCommand))
+            ?.installCommands
+            ?.forEach(installCommand => installCommands.push(installCommand))
 
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
@@ -70,8 +70,8 @@ export abstract class CdkGithubPipeline extends Construct {
             synthAction: new SimpleSynthAction({
                 sourceArtifact,
                 cloudAssemblyArtifact,
-                installCommands: props.installCommands,
-                buildCommands: buildCommands,
+                installCommands: installCommands,
+                buildCommands: props.buildCommands,
                 synthCommand: 'npx cdk synth',
                 subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir : "."
             })
@@ -113,12 +113,10 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
 
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
-        const buildCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
-        if (props?.commands?.buildCommands)
-            props
-                ?.commands
-                ?.buildCommands
-                ?.forEach(buildCommand => buildCommands.push(buildCommand));
+        const installCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
+        props?.commands?.installCommands
+            ?.forEach(installCommand => installCommands.push(installCommand));
+
 
         const githubTokenPath = props.github?.tokenInSecretManager || 'GITHUB_TOKEN';
 
@@ -137,9 +135,9 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
             synthAction: new SimpleSynthAction({
                 sourceArtifact,
                 cloudAssemblyArtifact,
-                installCommands: props?.commands?.installCommands,
-                buildCommands: buildCommands,
-                synthCommand: 'npx cdk synth',
+                installCommands: installCommands,
+                buildCommands: props.commands?.buildCommands,
+                synthCommand: 'cdk synth',
                 subdirectory: CdkGithubPipelineWithTests.notEmptyString(props.subdir) ? props.subdir : "."
             })
 
@@ -160,16 +158,16 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
             })
             const pipelineStage = this.cdkPipeline.addApplicationStage(stage);
             if (firstStage && props?.commands?.beforeNonProdTestCommands) {
-                pipelineStage.addActions(this.testsActionsBeforeFirstStageDeployment(pipelineStage, sourceArtifact, props.commands.beforeNonProdTestCommands));
+                pipelineStage.addActions(CdkGithubPipelineWithTests.testsActionsBeforeFirstStageDeployment(pipelineStage, sourceArtifact, props.commands.beforeNonProdTestCommands));
                 firstStage = false;
             }
             if (stage.stageName == props.stage.prodStageName && props?.commands?.beforeProdTestCommands) {
-                pipelineStage.addActions(this.testsActionsBeforeProd(pipelineStage, sourceArtifact, props.commands.beforeProdTestCommands));
+                pipelineStage.addActions(CdkGithubPipelineWithTests.testsActionsBeforeProd(pipelineStage, sourceArtifact, props.commands.beforeProdTestCommands));
             }
         })
     }
 
-    private testsActionsBeforeFirstStageDeployment(pipelineStage: CdkStage, sourceArtifact: Artifact, testCommands: string[]) {
+    private static testsActionsBeforeFirstStageDeployment(pipelineStage: CdkStage, sourceArtifact: Artifact, testCommands: string[]) {
         return new ShellScriptAction({
             actionName: 'tests',
             runOrder: pipelineStage.nextSequentialRunOrder(),
@@ -180,7 +178,7 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
         });
     }
 
-    private testsActionsBeforeProd(pipelineStage: CdkStage, sourceArtifact: Artifact, testCommands: string[]) {
+    private static testsActionsBeforeProd(pipelineStage: CdkStage, sourceArtifact: Artifact, testCommands: string[]) {
         return new ShellScriptAction({
             actionName: 'beforeProdTests',
             runOrder: pipelineStage.nextSequentialRunOrder(),
