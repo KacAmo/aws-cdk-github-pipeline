@@ -71,7 +71,7 @@ export abstract class CdkGithubPipeline extends Construct {
                 sourceArtifact,
                 cloudAssemblyArtifact,
                 installCommands: props.installCommands,
-                buildCommands: props.buildCommands,
+                buildCommands: buildCommands,
                 synthCommand: 'npx cdk synth',
                 subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir : "."
             })
