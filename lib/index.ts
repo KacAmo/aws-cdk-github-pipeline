@@ -71,7 +71,7 @@ export abstract class CdkGithubPipeline extends Construct {
                 sourceArtifact,
                 cloudAssemblyArtifact,
                 installCommands: props.installCommands,
-                buildCommands: props.buildCommands,
+                buildCommands: buildCommands,
                 synthCommand: 'npx cdk synth',
                 subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir : "."
             })
@@ -114,7 +114,11 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
         const buildCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
-        if (props?.commands?.buildCommands) Array.prototype.push.apply(buildCommands, props.commands.buildCommands);
+        if (props?.commands?.buildCommands)
+            props
+                ?.commands
+                ?.buildCommands
+                ?.forEach(buildCommand => buildCommands.push(buildCommand));
 
         const githubTokenPath = props.github?.tokenInSecretManager || 'GITHUB_TOKEN';
 
