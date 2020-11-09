@@ -6,19 +6,6 @@ import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import {App, Construct, SecretValue, Stack, Stage} from "@aws-cdk/core/lib";
 
 export interface CdkGithubPipelineProps {
-    buildCommands?: string[];
-    installCommands?: string[];
-    projectName: string,
-    githubProjectOwner: string
-    stages: {
-        name: string
-        account: string,
-        region: string
-    }[],
-    subdir?: string
-}
-
-export interface CdkGithubPipelineWithTestsProps {
     commands?: {
         buildCommands?: string[];
         installCommands?: string[];
@@ -50,70 +37,6 @@ export abstract class CdkGithubPipeline extends Construct {
         const sourceArtifact = new codepipeline.Artifact();
         const cloudAssemblyArtifact = new codepipeline.Artifact();
         const installCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
-
-        props
-            ?.installCommands
-            ?.forEach(installCommand => installCommands.push(installCommand))
-
-        this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
-            pipelineName: `${props?.projectName}-pipeline`,
-            cloudAssemblyArtifact,
-
-            sourceAction: new codepipeline_actions.GitHubSourceAction({
-                actionName: 'GitHub',
-                output: sourceArtifact,
-                oauthToken: SecretValue.secretsManager('GITHUB_TOKEN'),
-                owner: props.githubProjectOwner,
-                repo: props.projectName,
-            }),
-
-            synthAction: new SimpleSynthAction({
-                sourceArtifact,
-                cloudAssemblyArtifact,
-                installCommands: installCommands,
-                buildCommands: props.buildCommands,
-                synthCommand: 'npx cdk synth',
-                subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir : "."
-            })
-
-        });
-
-        props.stages.forEach(stageParams => {
-            const stageEnv = {
-                region: stageParams.region,
-                account: stageParams.account
-            };
-            const stage = new Stage(pipelineStack, stageParams.name, {
-                env: stageEnv
-            });
-            this.createStacks({
-                stageScope: stage,
-                ...stageEnv
-            })
-            this.cdkPipeline.addApplicationStage(stage)
-        })
-    }
-
-    private static notEmptyString(stringToTest: string | undefined) {
-        return stringToTest && stringToTest.length > 0;
-    }
-
-    protected abstract createStacks(stageEnvironment: {
-        stageScope: Stage,
-        account: string,
-        region: string
-    }): Stack[];
-}
-
-export abstract class CdkGithubPipelineWithTests extends Construct {
-    private cdkPipeline: CdkPipeline;
-
-    protected constructor(app: App, pipelineStack: Stack, id: string, props: CdkGithubPipelineWithTestsProps) {
-        super(app, id);
-
-        const sourceArtifact = new codepipeline.Artifact();
-        const cloudAssemblyArtifact = new codepipeline.Artifact();
-        const installCommands: string[] = ["npm install -g aws-cdk ts-node typescript"];
         props?.commands?.installCommands
             ?.forEach(installCommand => installCommands.push(installCommand));
 
@@ -138,7 +61,7 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
                 installCommands: installCommands,
                 buildCommands: props.commands?.buildCommands,
                 synthCommand: 'cdk synth',
-                subdirectory: CdkGithubPipelineWithTests.notEmptyString(props.subdir) ? props.subdir : "."
+                subdirectory: CdkGithubPipeline.notEmptyString(props.subdir) ? props.subdir : "."
             })
 
         });
@@ -158,11 +81,11 @@ export abstract class CdkGithubPipelineWithTests extends Construct {
             })
             const pipelineStage = this.cdkPipeline.addApplicationStage(stage);
             if (firstStage && props?.commands?.beforeNonProdTestCommands) {
-                pipelineStage.addActions(CdkGithubPipelineWithTests.testsActionsBeforeFirstStageDeployment(pipelineStage, sourceArtifact, props.commands.beforeNonProdTestCommands));
+                pipelineStage.addActions(CdkGithubPipeline.testsActionsBeforeFirstStageDeployment(pipelineStage, sourceArtifact, props.commands.beforeNonProdTestCommands));
                 firstStage = false;
             }
             if (stage.stageName == props.stage.prodStageName && props?.commands?.beforeProdTestCommands) {
-                pipelineStage.addActions(CdkGithubPipelineWithTests.testsActionsBeforeProd(pipelineStage, sourceArtifact, props.commands.beforeProdTestCommands));
+                pipelineStage.addActions(CdkGithubPipeline.testsActionsBeforeProd(pipelineStage, sourceArtifact, props.commands.beforeProdTestCommands));
             }
         })
     }

@@ -1,8 +1,8 @@
 {
   "name": "aws-cdk-github-pipeline",
-  "version": "0.3.6",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "version": "1.0.0",
+  "main": "lib/cdk-github-pipeline.js",
+  "types": "lib/cdk-github-pipeline.d.ts",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
