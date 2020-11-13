@@ -15,7 +15,7 @@ export interface CdkGithubPipelineProps {
     projectName: string,
     github: {
         projectOwner: string,
-        tokenInSecretManager?: string
+        tokenInSecretManager: SecretValue
     }
     stage: {
         prodStageName?: string,
@@ -40,17 +40,13 @@ export abstract class CdkGithubPipeline extends Construct {
         props?.commands?.installCommands
             ?.forEach(installCommand => installCommands.push(installCommand));
 
-
-        const githubTokenPath = props.github?.tokenInSecretManager || 'GITHUB_TOKEN';
-
-
         this.cdkPipeline = new CdkPipeline(pipelineStack, 'Pipeline', {
             pipelineName: `${props?.projectName}-pipeline`,
             cloudAssemblyArtifact,
             sourceAction: new codepipeline_actions.GitHubSourceAction({
                 actionName: 'GitHub',
                 output: sourceArtifact,
-                oauthToken: SecretValue.secretsManager(githubTokenPath),
+                oauthToken: props.github.tokenInSecretManager,
                 owner: props.github.projectOwner,
                 repo: props.projectName,
             }),
