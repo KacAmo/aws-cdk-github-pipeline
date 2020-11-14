@@ -5,6 +5,12 @@ import {Artifact} from '@aws-cdk/aws-codepipeline';
 import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import {App, Construct, SecretValue, Stack, Stage} from "@aws-cdk/core/lib";
 
+type StageProps = {
+    name: string
+    account: string,
+    region: string
+};
+
 export interface CdkGithubPipelineProps {
     commands?: {
         buildCommands?: string[];
@@ -19,11 +25,7 @@ export interface CdkGithubPipelineProps {
     }
     stage: {
         prodStageName?: string,
-        stages: {
-            name: string
-            account: string,
-            region: string
-        }[],
+        stages: StageProps[],
     }
     subdir?: string
 }
@@ -113,8 +115,6 @@ export abstract class CdkGithubPipeline extends Construct {
     }
 
     protected abstract createStacks(stageEnvironment: {
-        stageScope: Stage,
-        account: string,
-        region: string
+        stageScope: Stage
     }): Stack[];
 }
