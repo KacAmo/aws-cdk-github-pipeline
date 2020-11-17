@@ -20,6 +20,7 @@ export interface CdkGithubPipelineProps {
     }
     projectName: string,
     github: {
+        branch?: string,
         projectOwner: string,
         tokenInSecretManager: SecretValue
     }
@@ -51,6 +52,7 @@ export abstract class CdkGithubPipeline extends Construct {
                 oauthToken: props.github.tokenInSecretManager,
                 owner: props.github.projectOwner,
                 repo: props.projectName,
+                branch: props.github.branch
             }),
 
             synthAction: new SimpleSynthAction({

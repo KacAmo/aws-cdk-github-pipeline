@@ -1,6 +1,6 @@
 {
   "name": "aws-cdk-github-pipeline",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "main": "lib/cdk-github-pipeline.js",
   "types": "lib/cdk-github-pipeline.d.ts",
   "scripts": {
